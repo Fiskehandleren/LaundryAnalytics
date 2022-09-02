@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 
 
 class Predictor:
-    def __init__(self):
+    def __init__(self, use_data_after_date: str=None):
         self.accuracy = None
+        self.use_data_after_date = use_data_after_date
 
     def parse_bookings(self):
         df_rolling = pd.read_csv('bookings.csv', parse_dates=['date','start_time', 'end_time'], index_col=[0])
@@ -16,15 +17,13 @@ class Predictor:
         df_rolling = df_rolling.reset_index()
         df_rolling['days_since_booked'] = (df_rolling.date - np.roll(df_rolling.date, shift=1))
         df_rolling.days_since_booked = df_rolling.days_since_booked.apply(lambda x: x.days)
-        # Change values of first row to 0
-        df_rolling.days_since_booked.iloc[0] = 0
         df_rolling.rename(columns={'total_time_hours': 'booked'}, inplace=True)
         # drop first row
         df_rolling = df_rolling.drop(df_rolling.index[0])
         
         df_rolling_filled_dates = df_rolling.set_index('date').resample('D').mean()
         # increment by 1 each day until the next booking    
-        for idx, row in df_rolling_filled_dates.iterrows():
+        for _, row in df_rolling_filled_dates.iterrows():
             if row.booked == 1:
                 counter = 1
             else:
@@ -33,9 +32,14 @@ class Predictor:
         df_rolling_filled_dates.replace(np.nan, 0, inplace=True)
         self.data = df_rolling_filled_dates
 
+        # Hack to fix large gap in data when I was away on exchange for 4 months
+        if self.use_data_after_date:
+            self.data = self.data.loc[self.use_data_after_date:]
+
 
     def fit_model(self):
-        self.model = LogisticRegression()
+        # Beacuse of uneven distribution of labels, we adjust weights inversely proportional to class frequencies
+        self.model = LogisticRegression(class_weight='balanced')
         X, y = self.data.days_since_booked.values.reshape(-1, 1), self.data.booked.values.ravel()
         # split 
         N = len(X)
