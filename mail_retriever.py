@@ -54,7 +54,6 @@ class MailRetriever:
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
         
-
     def init_imap(self):
         self.imap = imaplib.IMAP4_SSL(self.imap_server)
         self.imap.login(self.mail_login, self.mail_pwd)
@@ -68,6 +67,7 @@ class MailRetriever:
                 end_time = datetime.strptime(result[1][0], "%Y-%m-%d %H:%M:%S")
                 date = start_time.date()
                 return Booking(date, start_time, end_time)
+
     def retrieve_cache(self):
         try:
             f = open("bookings.pkl", "rb")
@@ -89,7 +89,8 @@ class MailRetriever:
             logging.info(f"Looking for mails after {latest_booking}")
             imap_query = '(FROM "noreply@noreply.prosedo.dk" SINCE "%s")' % latest_booking.strftime("%d-%b-%Y")
         else:
-            imap_query = '(FROM "noreply@noreply.prosedo.dk"'
+            imap_query = '(FROM "noreply@noreply.prosedo.dk")'
+
         status, messages = self.imap.search(None, imap_query)
         if status != 'OK':
             raise Exception("Error searching Inbox.")
@@ -136,14 +137,3 @@ class MailRetriever:
         df = df.groupby('date').agg({'start_time': 'min', 'end_time': 'max', 'total_time_hours': 'sum'})
         df.to_csv("bookings.csv")
         logging.info("Data consolidated and persisted to bookings.csv")
-
-if __name__ == "__main__":
-
-    caching = int(input("Use cache? (0/1): "))
-    if caching == 1:
-        mr = MailRetriever(use_cache=True)
-    else:
-        mail_login = input("Mail login: ")
-        mail_pwd = input("Mail password: ")
-        mr = MailRetriever(mail_login, mail_pwd, use_cache=caching, retrieve_after=True)
-    mr.get_mails()
