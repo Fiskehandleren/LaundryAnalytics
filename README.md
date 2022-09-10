@@ -4,6 +4,16 @@
      alt="Markdown Monster icon"
      style="float: left; margin-right: 10px;" />
 
+## Prerequisites 
+- A Gmail account with archived mails from the Probo mailing system
+- An app password to login to Gmail.
+
+If you don't have above, you can simply play around by selecting to use cached data when prompted.
+
+## Running the scripts
+`> python main.py` produces the `current_predictions.png` - and overview of the probability of an event happening the next 14 days after the last event.
+
+
 ## How?
 - Parsing receipts for laundry bookings from the digital owner's association management tool [Probo](https://www.prosedo.dk).
 - Parsing my Gmail using `imaplib` for email confirmations for laundry slots. Only mails NOT deleted (not archived) will be retrieved. 
@@ -15,3 +25,5 @@
 - [ ] Make script to trigger some action, once $\mathbb{P}(booking_i) >= treshhold$
 - [ ] Make Github Actions run this script with a given frequency
 - [ ] Make script alert by sending an email 
+- [ ] Play around with time series models
+- [ ] Use `argparse` library to parse commandlines
