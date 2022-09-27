@@ -7,8 +7,9 @@ import datetime
 import matplotlib.pyplot as plt 
 from constants import Metrics
 
+
 class Predictor:
-    def __init__(self, use_data_after_date: str=None):
+    def __init__(self, use_data_after_date: str = None):
         self.accuracy = None
         self.use_data_after_date = use_data_after_date
         self.predictions = None
@@ -54,8 +55,8 @@ class Predictor:
 
     def generate_metrics(self):
         self.metrics = {
-            Metrics.METRICS_F1: f1_score(self.y_test, self.model.predict(self.X_test)),
-            Metrics.METRICS_ACCURACY: self.model.score(self.X_test, self.y_test)
+            Metrics.F1_SCORE: f1_score(self.y_test, self.model.predict(self.X_test)),
+            Metrics.ACCURACY: self.model.score(self.X_test, self.y_test)
         }
 
     def predict(self, threshold, look_forward_days=30):
@@ -64,7 +65,7 @@ class Predictor:
 
         if latest_booking_date > datetime.date.today():
             logging.info('Laundry slot already booked in the future. No need to compute probability.')
-            #return
+            return
         
         dates_forward = np.array([latest_booking_date + datetime.timedelta(days=i) for i in range(look_forward_days)])
         vals = np.arange(0, look_forward_days).reshape(-1, 1)
@@ -87,4 +88,4 @@ class Predictor:
         #plt.scatter(vals[y_test==1], y_test[y_test==1], label='actual')
         plt.legend()
         plt.tight_layout()
-        plt.savefig('current_predictions.png', dpi=150, bbox_inches = "tight")
+        plt.savefig('current_predictions.png', dpi=150, bbox_inches="tight")
