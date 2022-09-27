@@ -114,6 +114,7 @@ class MailRetriever:
                             soup = parsed_html.body.find_all('p')
                             self.bookings.append(self.extract_booking_time(soup))
                 break
+        logging.info("Done retrieving mails.")
         self.imap.close()
         self.imap.logout()
         self.consolidate_bookings()

@@ -27,3 +27,4 @@ If you don't have above, you can simply play around by selecting to use cached d
 - [ ] Make script alert by sending an email 
 - [ ] Play around with time series models
 - [ ] Use `argparse` library to parse commandlines
+- [ ] Make script update cache with newer data than latest entry
