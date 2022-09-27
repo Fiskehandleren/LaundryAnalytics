@@ -1,6 +1,6 @@
 import mail_retriever
 from predictor import Predictor
-import logging 
+import logging
 import argparse
 
 if __name__ == "__main__":
@@ -12,13 +12,13 @@ if __name__ == "__main__":
     parser.add_argument("-u", "--username", help="username for email account", type=str, default=None)
     parser.add_argument("-s", "--subset", help="subset of data to use", action="store_true", default=True)
     parser.add_argument("-t", "--threshold", help="threshold for model to classify event", type=float, default=0.8)
-    
+
     args = parser.parse_args()
 
     if args.cache == 1:
         mr = mail_retriever.MailRetriever(use_cache=True)
     else:
-        if args.username == None or args.password == None:
+        if args.username is None or args.password is None:
             logging.error("Username and password must be provided if cache is not used. Else use -c flag.")
             parser.print_help()
             exit(1)

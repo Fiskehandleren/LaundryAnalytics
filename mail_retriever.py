@@ -4,10 +4,11 @@ import email
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
-import pickle 
+import pickle
 import logging
 
 REGEX = r"([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:(30|00))"
+
 
 class Booking:
     def __init__(self, date, start_time, end_time):
@@ -17,8 +18,8 @@ class Booking:
         self.total_time_hours = (end_time-start_time).seconds/3600
 
     def __str__(self):
-        return "{} {} to {}, total: {} hours ".format(self.date, self.start_time.time(), self.end_time.time(), self.total_time_hours)
-    
+        return f"{self.date} {self.start_time.time()} to {self.end_time.time()}, total: {self.total_time_hours} hours"
+
     def __repr__(self):
         return self.__str__()
 
@@ -30,8 +31,9 @@ class Booking:
             'total_time_hours': self.total_time_hours
         }
 
+
 class MailRetriever:
-    def __init__(self, mail_login=None, mail_pwd=None, use_cache=False, retrieve_after:bool=False) -> None:
+    def __init__(self, mail_login=None, mail_pwd=None, use_cache=False, retrieve_after: bool = False) -> None:
         self.mail_login = mail_login
         self.mail_pwd = mail_pwd
         self.imap_server = "imap.gmail.com"
@@ -44,16 +46,16 @@ class MailRetriever:
         """Setup logging in both console and file."""
         logging.basicConfig(
             level=logging.DEBUG,
-            format='%(asctime)s: %(levelname)s - %(message)s', 
-            datefmt='%d/%m/%Y %H:%M', 
-            filename='mails.log', 
+            format='%(asctime)s: %(levelname)s - %(message)s',
+            datefmt='%d/%m/%Y %H:%M',
+            filename='mails.log',
             filemode='w')
         console = logging.StreamHandler()
         console.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s: %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M')
         console.setFormatter(formatter)
         logging.getLogger('').addHandler(console)
-        
+
     def init_imap(self):
         self.imap = imaplib.IMAP4_SSL(self.imap_server)
         self.imap.login(self.mail_login, self.mail_pwd)
