@@ -3,6 +3,22 @@ from predictor import Predictor
 import logging
 import argparse
 
+
+def setup_logging():
+    """Setup logging in both console and file."""
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s: %(levelname)s - %(message)s',
+        datefmt='%d/%m/%Y %H:%M',
+        filename='mails.log',
+        filemode='w')
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
+
+
 if __name__ == "__main__":
     # Parse arguments from command line
     parser = argparse.ArgumentParser()
@@ -14,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--threshold", help="threshold for model to classify event", type=float, default=0.8)
 
     args = parser.parse_args()
-
+    setup_logging()
     if args.cache == 1:
         mr = mail_retriever.MailRetriever(use_cache=True)
     else:
@@ -37,6 +53,12 @@ if __name__ == "__main__":
     print(predictor.data.head(-5))
     predictor.fit_model()
     predictor.predict(args.threshold)
-    logging.info(predictor.predictions)
     logging.info(predictor.metrics)
+    if len(predictor.predictions) > 0:
+        # index into first key
+        logging.info(f"Laundry slot should be booked at {list(predictor.predictions.keys())[0]}")
+        # send mail
+
+    logging.info(predictor.predictions)
+
     logging.info("Done")

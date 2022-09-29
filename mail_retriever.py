@@ -40,21 +40,6 @@ class MailRetriever:
         self.bookings = []
         self.use_cache = use_cache
         self.retrieve_after = retrieve_after
-        self.setup_logging()
-
-    def setup_logging(self):
-        """Setup logging in both console and file."""
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format='%(asctime)s: %(levelname)s - %(message)s',
-            datefmt='%d/%m/%Y %H:%M',
-            filename='mails.log',
-            filemode='w')
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s: %(levelname)s - %(message)s', datefmt='%d/%m/%Y %H:%M')
-        console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
 
     def init_imap(self):
         self.imap = imaplib.IMAP4_SSL(self.imap_server)
