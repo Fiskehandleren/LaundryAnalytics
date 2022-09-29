@@ -54,7 +54,7 @@ if __name__ == "__main__":
     predictor.fit_model()
     predictor.predict(args.threshold)
     logging.info(predictor.metrics)
-    if len(predictor.predictions) > 0:
+    if predictor.predictions and len(predictor.predictions) > 0:
         # index into first key
         logging.info(f"Laundry slot should be booked at {list(predictor.predictions.keys())[0]}")
         # send mail
