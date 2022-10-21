@@ -22,7 +22,6 @@ If you don't have above, you can simply play around by selecting to use cached d
 
 ## Future work
 - [ ] Find methods to interpolate gap in data from my semester abroad (January 22' to May 22').
-- [ ] Make script to trigger some action, once $\mathbb{P}(booking_i) >= treshhold$
-- [ ] Make script alert by sending an email 
+- [ ] Lookup calendar to find best slot for laundry session.
 - [ ] Play around with time series models
 - [ ] Make script update cache with newer data than latest entry
