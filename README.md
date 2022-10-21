@@ -1,9 +1,4 @@
 # LaundryAnalytics
-## Current distribution
-<img src="current_predictions.png"
-     alt="Markdown Monster icon"
-     style="float: left; margin-right: 10px;" />
-
 ## Prerequisites 
 - A Gmail account with archived mails from the Probo mailing system
 - An app password to login to Gmail.
