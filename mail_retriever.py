@@ -37,13 +37,12 @@ class MailRetriever:
     def __init__(self, mail_login=None, mail_pwd=None, use_cache=False, retrieve_after: bool = False) -> None:
         self.mail_login = mail_login
         self.mail_pwd = mail_pwd
-        self.imap_server = constants.LAUNDRY_CONFIRMATION_EMAIL
         self.bookings = []
         self.use_cache = use_cache
         self.retrieve_after = retrieve_after
 
     def init_imap(self) -> None:
-        self.imap = imaplib.IMAP4_SSL(self.imap_server)
+        self.imap = imaplib.IMAP4_SSL(constants.GMAIL_IMAP)
         self.imap.login(self.mail_login, self.mail_pwd)
         self.imap.select(constants.GMAIL_FOLDER_QUERY, readonly=True)
 
@@ -77,7 +76,7 @@ class MailRetriever:
             logging.info(f"Looking for mails after {latest_booking}")
             imap_query = f'(FROM "{constants.LAUNDRY_CONFIRMATION_EMAIL}" SINCE "{latest_booking.strftime("%d-%b-%Y")}")'
         else:
-            imap_query = '(FROM "{LAUNDRY_CONFIRMATION_EMAIL}")'
+            imap_query = f'(FROM "{constants.LAUNDRY_CONFIRMATION_EMAIL}")'
 
         status, messages = self.imap.search(None, imap_query)
         if status != 'OK':
