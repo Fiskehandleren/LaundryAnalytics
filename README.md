@@ -15,6 +15,9 @@ If you don't have above, you can simply play around by selecting to use cached d
 - Currently classifies a laundry-session as a binary event. (Future work would be playing around with the length of the sessions.)
 - Fitting a logistic regression model on the data to obtain the probabilities for a laundry session to take place $k$ days after the last session. 
 
+## Why
+There's a lot of competition for the laundry machines in my apartment building. I wanted to know when the best time to do laundry was.
+
 ## Future work
 - [ ] Find methods to interpolate gap in data from my semester abroad (January 22' to May 22').
 - [ ] Lookup calendar to find best slot for laundry session.
