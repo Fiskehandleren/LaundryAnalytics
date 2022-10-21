@@ -41,7 +41,7 @@ class MailRetriever:
         self.use_cache = use_cache
         self.retrieve_after = retrieve_after
 
-    def init_imap(self):
+    def init_imap(self) -> None:
         self.imap = imaplib.IMAP4_SSL(self.imap_server)
         self.imap.login(self.mail_login, self.mail_pwd)
         self.imap.select('"[Gmail]/Alle mails"', readonly=True)
@@ -55,7 +55,7 @@ class MailRetriever:
                 date = start_time.date()
                 return Booking(date, start_time, end_time)
 
-    def retrieve_cache(self):
+    def retrieve_cache(self) -> None:
         try:
             f = open("bookings.pkl", "rb")
             self.bookings = pickle.load(f)
@@ -63,7 +63,7 @@ class MailRetriever:
         except FileNotFoundError:
             logging.warning("No cache found. Retrieving mails...")
 
-    def get_mails(self) -> list:
+    def get_mails(self) -> None:
         if self.use_cache:
             self.retrieve_cache()
             self.consolidate_bookings()
@@ -107,7 +107,7 @@ class MailRetriever:
         self.consolidate_bookings()
         self.persist_data()
 
-    def persist_data(self):
+    def persist_data(self) -> None:
         open_file = open("bookings.pkl", "wb")
         pickle.dump(self.bookings, open_file)
         open_file.close()
@@ -118,7 +118,7 @@ class MailRetriever:
         df = pd.DataFrame.from_records([b.to_dict() for b in self.bookings if b is not None])
         return df['date'].max()
 
-    def consolidate_bookings(self):
+    def consolidate_bookings(self) -> None:
         df = pd.DataFrame.from_records([b.to_dict() for b in self.bookings if b is not None])
         # remove duplicates
         df.drop_duplicates(inplace=True)

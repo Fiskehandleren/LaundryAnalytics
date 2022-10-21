@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
 from sklearn.metrics import f1_score
 import datetime
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ class Predictor:
     def __init__(self, use_data_after_date: str = None):
         self.accuracy = None
         self.use_data_after_date = use_data_after_date
-        self.predictions = None
+        self.predictions = []
         self.metrics = None
 
     def parse_bookings(self):
@@ -43,12 +43,11 @@ class Predictor:
 
     def fit_model(self):
         # Beacuse of uneven distribution of labels, we adjust weights inversely proportional to class frequencies
-        self.model = LogisticRegression(class_weight='balanced')
         X, y = self.data.days_since_booked.values.reshape(-1, 1), self.data.booked.values.ravel()
         # split
         N = len(X)
         self.X_train, self.X_test, self.y_train, self.y_test = X[:int(N*0.8)], X[int(N*0.8):], y[:int(N*0.8)], y[int(N*0.8):]
-
+        self.model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', scale_pos_weight=1/y.mean())
         self.model.fit(self.X_train, self.y_train)
         self.generate_metrics()
 
@@ -58,14 +57,13 @@ class Predictor:
             Metrics.ACCURACY: self.model.score(self.X_test, self.y_test)
         }
 
-    def predict(self, threshold, look_forward_days=30):
+    def predict(self, threshold, look_forward_days=30) -> None:
         # get date from the last row of df_rolling_filled_dates
         latest_booking_date = self.data.index[-1].date()
 
         if latest_booking_date > datetime.date.today():
-            logging.info('Laundry slot already booked in the future. No need to compute probability.')
+            logging.warning('Laundry slot already booked in the future. No need to book laundry slot.')
             return
-
         dates_forward = np.array([latest_booking_date + datetime.timedelta(days=i) for i in range(look_forward_days)])
         vals = np.arange(0, look_forward_days).reshape(-1, 1)
         predictions = self.model.predict_proba(vals)[:, 1]
@@ -73,15 +71,17 @@ class Predictor:
         self.make_figure(dates_forward, predictions)
         self.make_predictions_dict(dates_forward, predictions, threshold)
 
-    def make_predictions_dict(self, dates_forward, preds, threshold):
+    def make_predictions_dict(self, dates_forward, preds, threshold) -> None:
         print(dates_forward[preds >= threshold])
         if len(preds[preds >= threshold]) == 0:
             logging.info('No predictions above threshold')
             return
-        self.predictions = dict(zip(dates_forward[preds >= threshold], preds[preds >= threshold]))
-        return
+        self.predictions = pd.DataFrame(
+            {"date": dates_forward[preds >= threshold], "prediction": preds[preds >= threshold]},
+            columns=['date', 'prediction'])
 
     def make_figure(self, dates_forward, preds):
+        # TODO make this figure prettier
         plt.figure(figsize=(12, 10))
         plt.scatter(dates_forward, preds, label='Predicted probability')
         # plt.scatter(vals[y_test==1], y_test[y_test==1], label='actual')

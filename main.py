@@ -1,4 +1,5 @@
 import mail_retriever
+from mailer import Mailer
 from predictor import Predictor
 import logging
 import argparse
@@ -31,15 +32,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     setup_logging()
-    if args.cache == 1:
-        mr = mail_retriever.MailRetriever(use_cache=True)
-    else:
-        if args.username is None or args.password is None:
+
+    if args.username is None or args.password is None:
+        if args.cache is False:
             logging.error("Username and password must be provided if cache is not used. Else use -c flag.")
             parser.print_help()
             exit(1)
-        mail_login = args.username
-        mail_pwd = args.password
+        else:
+            logging.warning("No email will be sent if no email credentials are provided.")
+            mail_login = None
+            mail_pwd = None
+
+    mail_login = args.username
+    mail_pwd = args.password
+
+    if args.cache == 1:
+        mr = mail_retriever.MailRetriever(use_cache=True)
+    else:
         mr = mail_retriever.MailRetriever(mail_login, mail_pwd, use_cache=args.cache, retrieve_after=False)
     mr.get_mails()
 
@@ -50,15 +59,15 @@ if __name__ == "__main__":
         predictor = Predictor()
 
     predictor.parse_bookings()
-    print(predictor.data.head(-5))
     predictor.fit_model()
     predictor.predict(args.threshold)
     logging.info(predictor.metrics)
-    if predictor.predictions and len(predictor.predictions) > 0:
+    if predictor and len(predictor.predictions) > 0:
+        logging.debug(predictor.predictions)
         # index into first key
-        logging.info(f"Laundry slot should be booked at {list(predictor.predictions.keys())[0]}")
-        # send mail
-
-    logging.info(predictor.predictions)
+        logging.info(f"Laundry slot should be booked at {predictor.predictions.iloc[0]}")
+        if mail_login and mail_pwd:
+            mailer = Mailer(predictor.predictions).send_mail_2(mail_login, mail_pwd, mail_login, "Laundry slot prediction")
+            logging.info("Email sent.")
 
     logging.info("Done")
