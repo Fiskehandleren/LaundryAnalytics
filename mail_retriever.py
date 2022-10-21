@@ -1,13 +1,14 @@
-from datetime import datetime
-import imaplib
 import email
-from bs4 import BeautifulSoup
-import re
-import pandas as pd
-import pickle
+import imaplib
 import logging
+import pickle
+import re
+from datetime import datetime
 
-REGEX = r"([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]:(30|00))"
+import pandas as pd
+from bs4 import BeautifulSoup
+
+import constants
 
 
 class Booking:
@@ -36,7 +37,7 @@ class MailRetriever:
     def __init__(self, mail_login=None, mail_pwd=None, use_cache=False, retrieve_after: bool = False) -> None:
         self.mail_login = mail_login
         self.mail_pwd = mail_pwd
-        self.imap_server = "imap.gmail.com"
+        self.imap_server = constants.LAUNDRY_CONFIRMATION_EMAIL
         self.bookings = []
         self.use_cache = use_cache
         self.retrieve_after = retrieve_after
@@ -44,12 +45,12 @@ class MailRetriever:
     def init_imap(self) -> None:
         self.imap = imaplib.IMAP4_SSL(self.imap_server)
         self.imap.login(self.mail_login, self.mail_pwd)
-        self.imap.select('"[Gmail]/Alle mails"', readonly=True)
+        self.imap.select(constants.GMAIL_FOLDER_QUERY, readonly=True)
 
     @staticmethod
     def extract_booking_time(parsed_html):
         for i in parsed_html:
-            if (result := re.findall(REGEX, i.text)) != []:
+            if (result := re.findall(constants.BOOKING_DATE_REGEX, i.text)) != []:
                 start_time = datetime.strptime(result[0][0], "%Y-%m-%d %H:%M:%S")
                 end_time = datetime.strptime(result[1][0], "%Y-%m-%d %H:%M:%S")
                 date = start_time.date()
@@ -74,9 +75,9 @@ class MailRetriever:
         if self.retrieve_after:
             latest_booking = self.find_lates_booking_date()
             logging.info(f"Looking for mails after {latest_booking}")
-            imap_query = '(FROM "noreply@noreply.prosedo.dk" SINCE "%s")' % latest_booking.strftime("%d-%b-%Y")
+            imap_query = f'(FROM "{constants.LAUNDRY_CONFIRMATION_EMAIL}" SINCE "{latest_booking.strftime("%d-%b-%Y")}")'
         else:
-            imap_query = '(FROM "noreply@noreply.prosedo.dk")'
+            imap_query = '(FROM "{LAUNDRY_CONFIRMATION_EMAIL}")'
 
         status, messages = self.imap.search(None, imap_query)
         if status != 'OK':
@@ -122,6 +123,7 @@ class MailRetriever:
         df = pd.DataFrame.from_records([b.to_dict() for b in self.bookings if b is not None])
         # remove duplicates
         df.drop_duplicates(inplace=True)
+        # Aggregate bookings on same day
         df = df.groupby('date').agg({'start_time': 'min', 'end_time': 'max', 'total_time_hours': 'sum'})
-        df.to_csv("bookings.csv")
-        logging.info("Data consolidated and persisted to bookings.csv")
+        df.to_csv(constants.DATA_PATH)
+        logging.info(f"Data consolidated and persisted to {constants.DATA_PATH}.")
